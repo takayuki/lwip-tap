@@ -35,7 +35,7 @@ CC = @CC@
 CPPFLAGS = @DEFS@ -I. -Ilwip-contrib/ports/unix/include \
   -Ilwip/src/include/ipv$(IP_VERSION) -Ilwip/src/include \
   -Ilwip-contrib/apps/httpserver \
-  -Ilwip-contrib/apps/tcpecho -Ilwip-contrib/apps/udpecho
+  -Ilwip-contrib/apps/tcpecho -Ilwip-contrib/apps/udpecho @CPPFLAGS@
 CFLAGS = -pthread -Wall @CFLAGS@
 LDFLAGS = -pthread @LDFLAGS@
 LIBS = @LIBS@
@@ -90,7 +90,7 @@ SOURCES = \
 OBJS := $(foreach f,$(SOURCES),$(notdir $(f:.c=.o)))
 %.o:
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
-.PHONY: all check-syntax depend dep clean
+.PHONY: all check-syntax depend dep clean distclean
 all: lwip-tap
 lwip-tap: $(OBJS)
 	$(CC) $(LDFLAGS) $(LIBS) -o lwip-tap $(OBJS)

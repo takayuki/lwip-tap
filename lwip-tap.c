@@ -163,7 +163,11 @@ parse_interface(struct tapif* tapif,char* param)
 void
 help(void)
 {
+#ifdef LWIP_DEBUG
   fprintf(stderr,"Usage: lwip-tap [-dh] -i name=<name>,addr=<addr>,netmask=<addr>[,gw=<addr>] [...]\n");
+#else
+  fprintf(stderr,"Usage: lwip-tap [-h] -i name=<name>,addr=<addr>,netmask=<addr>[,gw=<addr>] [...]\n");
+#endif
   exit(0);
 }
 
@@ -185,12 +189,18 @@ main(int argc,char *argv[])
   udpecho_init();
   tcpecho_init();
 
+#ifdef LWIP_DEBUG
   while ((ch = getopt(argc,argv,"dhi:")) != -1) {
+#else
+  while ((ch = getopt(argc,argv,"hi:")) != -1) {
+#endif
     switch (ch) {
+#ifdef LWIP_DEBUG
     case 'd':
       debug_flags |= (LWIP_DBG_ON|LWIP_DBG_TRACE|LWIP_DBG_STATE|
                       LWIP_DBG_FRESH|LWIP_DBG_HALT);
       break;
+#endif
     case 'i':
       if (n >= NETIF_MAX)
         break;
