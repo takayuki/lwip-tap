@@ -22,15 +22,24 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+srcdir = @srcdir@
+prefix = @prefix@
+exec_prefix = $(prefix)
+bindir = $(exec_prefix)/bin
+sbindir = $(exec_prefix)/sbin
+libexecdir = $(exec_prefix)/libexec
+datadir = $(prefix)/share
+
 IP_VERSION = 4
-CC = gcc
-CPPFLAGS = -I. -Ilwip-contrib/ports/unix/include \
+CC = @CC@
+CPPFLAGS = @DEFS@ -I. -Ilwip-contrib/ports/unix/include \
   -Ilwip/src/include/ipv$(IP_VERSION) -Ilwip/src/include \
   -Ilwip-contrib/apps/httpserver \
   -Ilwip-contrib/apps/tcpecho -Ilwip-contrib/apps/udpecho
-CFLAGS = -g -Wall -pthread
-LDFLAGS = -pthread
-LIBS =
+CFLAGS = -pthread -Wall @CFLAGS@
+LDFLAGS = -pthread @LDFLAGS@
+LIBS = @LIBS@
+INSTALL = @INSTALL@
 SOURCES = \
   lwip/src/api/api_lib.c \
   lwip/src/api/api_msg.c \
@@ -90,8 +99,11 @@ check-syntax:
 depend dep:
 	$(CC) $(CFLAGS) $(CPPFLAGS) -MM $(SOURCES) >.depend
 clean:
+	rm -f config.cache config.log
 	rm -f tap $(OBJS)
 distclean: clean
+	rm -f Makefile config.status
+	rm -rf autom4te.cache
 	rm -f .depend *~
 ifeq (.depend,$(wildcard .depend))
 include .depend

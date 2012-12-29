@@ -1,0 +1,7 @@
+lwip-tap
+
+lwip-tap is an application of "lwIP - A Lightweight TCP/IP Stack", which
+is a small, user-space implementation of the TCP/IP protocol stack.
+Using lwip-tap, you can easily plug an instance of lwIP to Linux Bridge or
+Open vSwitch through TAP devices. lwip-tap supports multiple network
+interfaces so that it also works as a router.
