@@ -1,0 +1,6 @@
+[submodule "lwip"]
+	path = lwip
+	url = git://git.savannah.nongnu.org/lwip.git
+[submodule "lwip-contrib"]
+	path = lwip-contrib
+	url = git://git.savannah.nongnu.org/lwip/lwip-contrib.git
