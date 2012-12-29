@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2001-2003 Swedish Institute of Computer Science.
+ * Copyright (c) 2012-2013 Takayuki Usui
  * All rights reserved. 
  * 
  * Redistribution and use in source and binary forms, with or without modification, 
@@ -30,7 +31,7 @@
  *
  */
 
-#include "netif/tapif.h"
+#include "tapif.h"
 
 #include <fcntl.h>
 #include <stdlib.h>
@@ -80,20 +81,57 @@
 #define TAPIF_DEBUG LWIP_DBG_OFF
 #endif
 
-struct tapif {
-  struct eth_addr *ethaddr;
-  /* Add whatever per-interface state that is needed here. */
-  int fd;
-};
-
 /* Forward declarations. */
 static void  tapif_input(struct netif *netif);
 
 static void tapif_thread(void *data);
 
 /*-----------------------------------------------------------------------------------*/
+#ifdef linux
+static err_t
+low_level_probe(struct netif *netif,const char *name)
+{
+  int len;
+  int s;
+  struct ifreq ifr;
+
+  len = strlen(name);
+  if (len > (IFNAMSIZ-1))
+    return ERR_IF;
+  s = socket(AF_INET,SOCK_DGRAM,0);
+  if (s == -1)
+    return ERR_IF;
+  memset(&ifr,0,sizeof(ifr));
+  strncpy(ifr.ifr_name,name,len);
+  if (ioctl(s,SIOCGIFHWADDR,&ifr) == -1)
+    goto err;
+  u8_t* hwaddr = (u8_t*)&ifr.ifr_hwaddr.sa_data;
+  netif->hwaddr[0] = hwaddr[0];
+  netif->hwaddr[1] = hwaddr[1];
+  netif->hwaddr[2] = hwaddr[2];
+  netif->hwaddr[3] = hwaddr[3];
+  netif->hwaddr[4] = hwaddr[4];
+  netif->hwaddr[5] = hwaddr[5];
+  netif->hwaddr_len = 6;
+  if (ioctl(s,SIOCGIFMTU,&ifr) == -1)
+    goto err;
+  netif->mtu = ifr.ifr_mtu;
+  close(s);
+  return ERR_OK;
+ err:
+  close(s);
+  return ERR_IF;
+}
+#else
+static err_t
+low_level_probe(struct netif *netif,const char *name)
+{
+  return ERR_IF;
+}
+#endif
+
 static void
-low_level_init(struct netif *netif)
+low_level_init(struct netif *netif,const char *name)
 {
   struct tapif *tapif;
   char buf[sizeof(IFCONFIG_ARGS) + sizeof(IFCONFIG_BIN) + 50];
@@ -127,22 +165,28 @@ low_level_init(struct netif *netif)
   {
     struct ifreq ifr;
     memset(&ifr, 0, sizeof(ifr));
+    if (name != NULL)
+      strncpy(ifr.ifr_name,name,strlen(name));
     ifr.ifr_flags = IFF_TAP|IFF_NO_PI;
     if (ioctl(tapif->fd, TUNSETIFF, (void *) &ifr) < 0) {
       perror("tapif_init: "DEVTAP" ioctl TUNSETIFF");
       exit(1);
     }
+    if (low_level_probe(netif,name) != ERR_OK)
+      return;
   }
 #endif /* Linux */
 
-  sprintf(buf, IFCONFIG_BIN IFCONFIG_ARGS,
-           ip4_addr1(&(netif->gw)),
-           ip4_addr2(&(netif->gw)),
-           ip4_addr3(&(netif->gw)),
-           ip4_addr4(&(netif->gw)));
+  if (name == NULL) {
+    sprintf(buf, IFCONFIG_BIN IFCONFIG_ARGS,
+            ip4_addr1(&(netif->gw)),
+            ip4_addr2(&(netif->gw)),
+            ip4_addr3(&(netif->gw)),
+            ip4_addr4(&(netif->gw)));
 
-  LWIP_DEBUGF(TAPIF_DEBUG, ("tapif_init: system(\"%s\");\n", buf));
-  system(buf);
+    LWIP_DEBUGF(TAPIF_DEBUG, ("tapif_init: system(\"%s\");\n", buf));
+    system(buf);
+  }
   sys_thread_new("tapif_thread", tapif_thread, netif, DEFAULT_THREAD_STACKSIZE, DEFAULT_THREAD_PRIO);
 
 }
@@ -331,12 +375,24 @@ err_t
 tapif_init(struct netif *netif)
 {
   struct tapif *tapif;
+  char *name = NULL;
+  err_t err;
 
-  tapif = (struct tapif *)mem_malloc(sizeof(struct tapif));
-  if (!tapif) {
-    return ERR_MEM;
+  if (netif->state == NULL) {
+    tapif = (struct tapif *)mem_malloc(sizeof(struct tapif));
+    if (!tapif) {
+      return ERR_MEM;
+    }
+    netif->state = tapif;
+  } else {
+    tapif = (struct tapif *)netif->state;
+    name = tapif->name;
+    if (name != NULL) {
+      err = low_level_probe(netif,name);
+      if (err != ERR_OK)
+        return err;
+    }
   }
-  netif->state = tapif;
   netif->name[0] = IFNAME0;
   netif->name[1] = IFNAME1;
   netif->output = etharp_output;
@@ -349,7 +405,7 @@ tapif_init(struct netif *netif)
 
   netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP;
 
-  low_level_init(netif);
+  low_level_init(netif,name);
 
   return ERR_OK;
 }

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2001-2003 Swedish Institute of Computer Science.
+ * Copyright (c) 2012-2013 Takayuki Usui
  * All rights reserved. 
  * 
  * Redistribution and use in source and binary forms, with or without modification, 
@@ -33,6 +34,16 @@
 #define __TAPIF_H__
 
 #include "lwip/netif.h"
+
+struct tapif {
+  struct eth_addr *ethaddr;
+  /* Add whatever per-interface state that is needed here. */
+  int fd;
+  char *name;
+  ip_addr_t ip_addr;
+  ip_addr_t netmask;
+  ip_addr_t gw;
+};
 
 err_t tapif_init(struct netif *netif);
 
