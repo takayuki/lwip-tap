@@ -34,7 +34,7 @@ IP_VERSION = 4
 CC = @CC@
 CPPFLAGS = @DEFS@ -I. -Ilwip-contrib/ports/unix/include \
   -Ilwip/src/include/ipv$(IP_VERSION) -Ilwip/src/include \
-  -Ilwip-contrib/apps/httpserver \
+  -Ilwip-contrib/apps/chargen -Ilwip-contrib/apps/httpserver \
   -Ilwip-contrib/apps/tcpecho -Ilwip-contrib/apps/udpecho @CPPFLAGS@
 CFLAGS = -pthread -Wall @CFLAGS@
 LDFLAGS = -pthread @LDFLAGS@
@@ -81,6 +81,7 @@ SOURCES = \
   lwip/src/core/snmp/msg_out.c \
   lwip/src/netif/etharp.c \
   lwip-contrib/ports/unix/sys_arch.c \
+  lwip-contrib/apps/chargen/chargen.c \
   lwip-contrib/apps/httpserver/httpserver-netconn.c \
   lwip-contrib/apps/tcpecho/tcpecho.c \
   lwip-contrib/apps/udpecho/udpecho.c \

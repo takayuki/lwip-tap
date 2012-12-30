@@ -34,6 +34,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "lwip/tcpip.h"
+#include "chargen.h"
 #include "httpserver-netconn.h"
 #include "tapif.h"
 #include "tcpecho.h"
@@ -187,11 +188,14 @@ main(int argc,char *argv[])
   tcpip_init(NULL,NULL);
 
 #ifdef LWIP_DEBUG
-  while ((ch = getopt(argc,argv,"EHdhi:")) != -1) {
+  while ((ch = getopt(argc,argv,"CEHdhi:")) != -1) {
 #else
-  while ((ch = getopt(argc,argv,"EHhi:")) != -1) {
+  while ((ch = getopt(argc,argv,"CEHhi:")) != -1) {
 #endif
     switch (ch) {
+    case 'C':
+      chargen_init();
+      break;
     case 'E':
       udpecho_init();
       tcpecho_init();
