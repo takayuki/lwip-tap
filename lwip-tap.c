@@ -164,9 +164,9 @@ void
 help(void)
 {
 #ifdef LWIP_DEBUG
-  fprintf(stderr,"Usage: lwip-tap [-dh] -i name=<name>,addr=<addr>,netmask=<addr>[,gw=<addr>] [...]\n");
+  fprintf(stderr,"Usage: lwip-tap [-EHdh] -i name=<name>,addr=<addr>,netmask=<addr>[,gw=<addr>] [...]\n");
 #else
-  fprintf(stderr,"Usage: lwip-tap [-h] -i name=<name>,addr=<addr>,netmask=<addr>[,gw=<addr>] [...]\n");
+  fprintf(stderr,"Usage: lwip-tap [-EHh] -i name=<name>,addr=<addr>,netmask=<addr>[,gw=<addr>] [...]\n");
 #endif
   exit(0);
 }
@@ -185,16 +185,20 @@ main(int argc,char *argv[])
   memset(netif,0,sizeof(netif));
 
   tcpip_init(NULL,NULL);
-  http_server_netconn_init();
-  udpecho_init();
-  tcpecho_init();
 
 #ifdef LWIP_DEBUG
-  while ((ch = getopt(argc,argv,"dhi:")) != -1) {
+  while ((ch = getopt(argc,argv,"EHdhi:")) != -1) {
 #else
-  while ((ch = getopt(argc,argv,"hi:")) != -1) {
+  while ((ch = getopt(argc,argv,"EHhi:")) != -1) {
 #endif
     switch (ch) {
+    case 'E':
+      udpecho_init();
+      tcpecho_init();
+      break;
+    case 'H':
+      http_server_netconn_init();
+      break;
 #ifdef LWIP_DEBUG
     case 'd':
       debug_flags |= (LWIP_DBG_ON|LWIP_DBG_TRACE|LWIP_DBG_STATE|
