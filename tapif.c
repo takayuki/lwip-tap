@@ -65,7 +65,7 @@
 #include <linux/if.h>
 #include <linux/if_tun.h>
 #define DEVTAP "/dev/net/tun"
-#define IFCONFIG_ARGS "tap0 inet %d.%d.%d.%d"
+#define IFCONFIG_ARGS "%s inet %d.%d.%d.%d netmask %d.%d.%d.%d"
 #elif defined(openbsd)
 #define DEVTAP "/dev/tun0"
 #define IFCONFIG_ARGS "tun0 inet %d.%d.%d.%d link0"
@@ -96,15 +96,21 @@ low_level_probe(struct netif *netif,const char *name)
   struct ifreq ifr;
 
   len = strlen(name);
-  if (len > (IFNAMSIZ-1))
+  if (len > (IFNAMSIZ-1)) {
+    perror("tapif_init: name is too long");
     return ERR_IF;
+  }
   s = socket(AF_INET,SOCK_DGRAM,0);
-  if (s == -1)
+  if (s == -1) {
+    perror("tapif_init: socket");
     return ERR_IF;
+  }
   memset(&ifr,0,sizeof(ifr));
   strncpy(ifr.ifr_name,name,len);
-  if (ioctl(s,SIOCGIFHWADDR,&ifr) == -1)
+  if (ioctl(s,SIOCGIFHWADDR,&ifr) == -1) {
+    perror("tapif_init: ioctl SIOCGIFHWADDR");
     goto err;
+  }
   u8_t* hwaddr = (u8_t*)&ifr.ifr_hwaddr.sa_data;
   netif->hwaddr[0] = hwaddr[0];
   netif->hwaddr[1] = hwaddr[1];
@@ -113,8 +119,10 @@ low_level_probe(struct netif *netif,const char *name)
   netif->hwaddr[4] = hwaddr[4];
   netif->hwaddr[5] = hwaddr[5];
   netif->hwaddr_len = 6;
-  if (ioctl(s,SIOCGIFMTU,&ifr) == -1)
+  if (ioctl(s,SIOCGIFMTU,&ifr) == -1) {
+    perror("tapif_init: ioctl SIOCGIFMTU");
     goto err;
+  }
   netif->mtu = ifr.ifr_mtu;
   close(s);
   return ERR_OK;
@@ -135,6 +143,9 @@ low_level_init(struct netif *netif,const char *name)
 {
   struct tapif *tapif;
   char buf[sizeof(IFCONFIG_ARGS) + sizeof(IFCONFIG_BIN) + 50];
+#ifdef linux
+  struct ifreq ifr;
+#endif
 
   tapif = (struct tapif *)netif->state;
 
@@ -162,31 +173,41 @@ low_level_init(struct netif *netif,const char *name)
   }
 
 #ifdef linux
-  {
-    struct ifreq ifr;
-    memset(&ifr, 0, sizeof(ifr));
-    if (name != NULL)
-      strncpy(ifr.ifr_name,name,strlen(name));
-    ifr.ifr_flags = IFF_TAP|IFF_NO_PI;
-    if (ioctl(tapif->fd, TUNSETIFF, (void *) &ifr) < 0) {
-      perror("tapif_init: "DEVTAP" ioctl TUNSETIFF");
-      exit(1);
-    }
-    if (low_level_probe(netif,name) != ERR_OK)
-      return;
+  memset(&ifr, 0, sizeof(ifr));
+  if (name != NULL)
+    strncpy(ifr.ifr_name,name,strlen(name));
+  ifr.ifr_flags = IFF_TAP|IFF_NO_PI;
+  if (ioctl(tapif->fd, TUNSETIFF, (void *) &ifr) < 0) {
+    perror("tapif_init: "DEVTAP" ioctl TUNSETIFF");
+    exit(1);
   }
-#endif /* Linux */
-
+  if (low_level_probe(netif,name != NULL ? name : ifr.ifr_name) != ERR_OK)
+    exit(1);
   if (name == NULL) {
     sprintf(buf, IFCONFIG_BIN IFCONFIG_ARGS,
+            ifr.ifr_name,
             ip4_addr1(&(netif->gw)),
             ip4_addr2(&(netif->gw)),
             ip4_addr3(&(netif->gw)),
-            ip4_addr4(&(netif->gw)));
+            ip4_addr4(&(netif->gw)),
+            ip4_addr1(&(netif->netmask)),
+            ip4_addr2(&(netif->netmask)),
+            ip4_addr3(&(netif->netmask)),
+            ip4_addr4(&(netif->netmask)));
 
     LWIP_DEBUGF(TAPIF_DEBUG, ("tapif_init: system(\"%s\");\n", buf));
     system(buf);
   }
+#else
+  sprintf(buf, IFCONFIG_BIN IFCONFIG_ARGS,
+          ip4_addr1(&(netif->gw)),
+          ip4_addr2(&(netif->gw)),
+          ip4_addr3(&(netif->gw)),
+          ip4_addr4(&(netif->gw)));
+
+  LWIP_DEBUGF(TAPIF_DEBUG, ("tapif_init: system(\"%s\");\n", buf));
+  system(buf);
+#endif
   sys_thread_new("tapif_thread", tapif_thread, netif, DEFAULT_THREAD_STACKSIZE, DEFAULT_THREAD_PRIO);
 
 }
