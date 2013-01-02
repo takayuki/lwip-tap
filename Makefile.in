@@ -101,11 +101,10 @@ depend dep:
 	$(CC) $(CFLAGS) $(CPPFLAGS) -MM $(SOURCES) >.depend
 clean:
 	rm -f config.cache config.log
-	rm -f tap $(OBJS)
+	rm -f lwip-tap $(OBJS) *~
 distclean: clean
-	rm -f Makefile config.status
+	rm -f Makefile config.h config.status
 	rm -rf autom4te.cache
-	rm -f .depend *~
 ifeq (.depend,$(wildcard .depend))
 include .depend
 endif
