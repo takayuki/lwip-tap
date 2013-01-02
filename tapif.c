@@ -117,7 +117,7 @@ low_level_probe(struct netif *netif,const char *name)
   netif->hwaddr[2] = hwaddr[2];
   netif->hwaddr[3] = hwaddr[3];
   netif->hwaddr[4] = hwaddr[4];
-  netif->hwaddr[5] = hwaddr[5];
+  netif->hwaddr[5] = hwaddr[5] + 1;
   netif->hwaddr_len = 6;
   if (ioctl(s,SIOCGIFMTU,&ifr) == -1) {
     perror("tapif_init: ioctl SIOCGIFMTU");
