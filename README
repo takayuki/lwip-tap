@@ -20,6 +20,13 @@ driver is updated.
 
 2. Build
 
+Clone the git repository from GitHub and initialize submodules,
+
+  $ git clone git://github.com/takayuki/lwip-tap.git
+  $ cd lwip-tap
+  $ git submodule init
+  $ git submodule update
+
 GNU make is required to build lwip-tap. A compile-time option to enable
 debugging facilities lwIP provides is available. See "8. Debugging" below.
 
