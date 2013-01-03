@@ -165,9 +165,9 @@ void
 help(void)
 {
 #ifdef LWIP_DEBUG
-  fprintf(stderr,"Usage: lwip-tap [-EHdh] -i name=<name>,addr=<addr>,netmask=<addr>[,gw=<addr>] [...]\n");
+  fprintf(stderr,"Usage: lwip-tap [-CEHdh] -i addr=<addr>,netmask=<addr>[,name=<name>,gw=<addr>] [...]\n");
 #else
-  fprintf(stderr,"Usage: lwip-tap [-EHh] -i name=<name>,addr=<addr>,netmask=<addr>[,gw=<addr>] [...]\n");
+  fprintf(stderr,"Usage: lwip-tap [-CEHh] -i addr=<addr>,netmask=<addr>[,name=<name>,gw=<addr>] [...]\n");
 #endif
   exit(0);
 }
