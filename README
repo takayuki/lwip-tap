@@ -64,7 +64,15 @@ made separately using persistent TAP devices,
 
   # ping 172.16.0.2
 
-5. Example: Run lwip-tap with Open vSwitch
+
+5. Example: Use DHCP with a persistent TAP device
+
+If you omit an address to an instance, lwip-tap automatically uses DHCP.
+
+  # lwip-tap -i name=tap0
+
+
+6. Example: Run lwip-tap with Open vSwitch
 
 Add br0 (172.16.0.1),
 
@@ -84,7 +92,8 @@ Run a lwip-tap on tap0 (172.16.0.2),
 
   # ping 172.16.0.2
 
-6. Example: Run lwip-tap as a router
+
+7. Example: Run lwip-tap as a router
 
 Add br0 (172.16.0.1),
 
@@ -131,7 +140,7 @@ a router between 172.16.0.2/24 and 172.16.1.1/24,
   # ping 172.16.1.2
 
 
-7. Build-in Applications
+8. Build-in Applications
 
 lwip-tap has currently three built-in applications which has been integrated
 from lwip-contrib for debugging purposes. All applications are disabled by
@@ -142,7 +151,7 @@ default. Use command-line options to enable those services.
   - http (port 80) in TCP (-H)
 
 
-8. Debugging
+9. Debugging
 
 lwIP has a compile-time option for debugging which is disable by default.
 To enable it, you need to rebuild lwip-tap giving an option to configure,

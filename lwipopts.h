@@ -107,7 +107,7 @@ a lot of data that needs to be copied, this should be set high. */
 #define MEMP_NUM_TCP_SEG        16
 /* MEMP_NUM_SYS_TIMEOUT: the number of simulateously active
    timeouts. */
-#define MEMP_NUM_SYS_TIMEOUT    3
+#define MEMP_NUM_SYS_TIMEOUT    5
 
 /* The following four are used only with the sequential API and can be
    set to 0 if the application only will use the raw API. */
@@ -196,7 +196,7 @@ a lot of data that needs to be copied, this should be set high. */
 /* ---------- DHCP options ---------- */
 /* Define LWIP_DHCP to 1 if you want DHCP configuration of
    interfaces. */
-#define LWIP_DHCP               0
+#define LWIP_DHCP               1
 
 /* 1 if you want to do an ARP check on the offered address
    (recommended if using DHCP). */

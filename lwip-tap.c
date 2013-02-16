@@ -165,9 +165,9 @@ void
 help(void)
 {
 #ifdef LWIP_DEBUG
-  fprintf(stderr,"Usage: lwip-tap [-CEHdh] -i addr=<addr>,netmask=<addr>[,name=<name>,gw=<addr>] [...]\n");
+  fprintf(stderr,"Usage: lwip-tap [-CEHdh] -i addr=<addr>,netmask=<addr>,name=<name>,gw=<addr> [...]\n");
 #else
-  fprintf(stderr,"Usage: lwip-tap [-CEHh] -i addr=<addr>,netmask=<addr>[,name=<name>,gw=<addr>] [...]\n");
+  fprintf(stderr,"Usage: lwip-tap [-CEHh] -i addr=<addr>,netmask=<addr>,name=<name>,gw=<addr> [...]\n");
 #endif
   exit(0);
 }
@@ -223,7 +223,12 @@ main(int argc,char *argv[])
                 tcpip_input);
       if (n == 0)
         netif_set_default(&netif[n]);
-      netif_set_up(&netif[n++]);
+      netif_set_up(&netif[n]);
+      if (IP4_OR_NULL(tapif[n].ip_addr) == 0 &&
+          IP4_OR_NULL(tapif[n].netmask) == 0 &&
+          IP4_OR_NULL(tapif[n].gw) == 0)
+        dhcp_start(&netif[n]);
+      n++;
       break;
     case 'h':
     default:
